@@ -54,7 +54,9 @@ def svm_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # pass
+    dW /= num_train
+    dW += reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     
@@ -78,7 +80,14 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # pass
+    N = X.shape[0]
+    scores = X.dot(W) # N x C
+    margin = scores - scores[range(0,N), y].reshape(-1, 1) + 1 # N x C
+    margin[range(N), y] = 0
+    margin = (margin > 0) * margin
+    loss += margin.sum() / N
+    loss += 0.5 * reg * np.sum(W * W)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -93,8 +102,11 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # pass
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    counts = (margin > 0).astype(int)
+    counts[range(N), y] = - np.sum(counts, axis = 1)
+    dW += np.dot(X.T, counts) / N + reg * W
 
     return loss, dW
