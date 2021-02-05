@@ -7,6 +7,8 @@ from .layers import *
 from .fast_layers import *
 
 
+# 该文件内的函数是将layers.py文件中的部分函数整合在一起，方便更加快捷的调用
+
 def affine_relu_forward(x, w, b):
     """
     Convenience layer that perorms an affine transform followed by a ReLU
