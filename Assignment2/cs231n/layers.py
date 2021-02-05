@@ -29,12 +29,33 @@ def affine_forward(x, w, b):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     pass
+    # print("x.shape=", x.shape)
+    # print("w.shape=", w.shape)
+    # print("b.shape=", b.shape)
+    # print(len(x.shape))
 
+    # print(b)
+    # X是所有数据，x是一个数据，在题设中是一列数据
+    # 需要将x变成一整个列向量
+    x_col_shape = 1
+    for i in range(1, len(x.shape)):
+      x_col_shape *= x.shape[i]
+    # print(x_col_shape)
+    x_reshape = x.reshape(x.shape[0], x_col_shape)
+    # print(x_reshape.shape)
+    # 用如上的算式将X从(N, d_1, ..., d_k)reshape成为(N, d_1 * ... * d_k)
+
+    # out = w * x_reshape + b
+    out = np.dot(x_reshape, w) + b
+    
+    # 该运算方法达到了最终的运算精度
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
     cache = (x, w, b)
+
+
     return out, cache
 
 
