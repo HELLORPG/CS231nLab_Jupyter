@@ -843,4 +843,5 @@ def softmax_loss(x, y):
     dx = probs.copy()
     dx[np.arange(N), y] -= 1
     dx /= N
+    # Softmax的求导恰好是y-1。
     return loss, dx

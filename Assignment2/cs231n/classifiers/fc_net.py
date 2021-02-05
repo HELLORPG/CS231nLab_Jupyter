@@ -22,6 +22,11 @@ class TwoLayerNet(object):
     self.params that maps parameter names to numpy arrays.
     """
 
+    """
+    ReLU激活函数
+    Softmax损失函数
+    self.params是可以学习的参数
+    """
     def __init__(
         self,
         input_dim=3 * 32 * 32,
@@ -56,6 +61,15 @@ class TwoLayerNet(object):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         pass
+        # 初始化参数，采用高斯型分布中心为0.0
+        # 标准差是weight_scale，偏差是0.0
+        # 字典self.params具有第一层权重和偏差：W1和b1，第二层同理
+
+        self.params["W1"] = weight_scale * np.random.randn(input_dim, hidden_dim)
+        self.params["b1"] = np.zeros(hidden_dim)
+
+        self.params["W2"] = weight_scale * np.random.randn(hidden_dim, num_classes)
+        self.params["b2"] = np.zeros(num_classes)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -90,6 +104,19 @@ class TwoLayerNet(object):
 
         pass
 
+        layer1_out, layer1_cache = affine_relu_forward(X, self.params["W1"], self.params["b1"])
+        layer2_out, layer2_cache = affine_forward(layer1_out, self.params["W2"], self.params["b2"])
+        # 前向传播计算两层
+
+        scores = layer2_out # 计分（最终结果）
+        
+        # if y is None: # 测试步骤
+        #   return scores # 返回分数
+
+        # # 后面的是计算backward步骤
+        # loss, grads = 0, {}
+
+
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -99,6 +126,7 @@ class TwoLayerNet(object):
         if y is None:
             return scores
 
+        # 后面是进行反向传播的相关计算
         loss, grads = 0, {}
         ############################################################################
         # TODO: Implement the backward pass for the two-layer net. Store the loss  #
@@ -113,6 +141,20 @@ class TwoLayerNet(object):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         pass
+        loss, dscores = softmax_loss(scores, y)
+
+        # 根据提示，需要计算L2范数，用以辅助计算梯度，用0.5是为了简化backward的表达式
+        L2 = 0.5 * self.reg * np.sum(np.square(self.params["W1"])) + 0.5 * self.reg * np.sum(np.square(self.params["W2"]))
+        loss += L2
+
+        dx2, dW2, db2 = affine_backward(dscores, layer2_cache)
+        # 加入L2正则项求导
+        grads["W2"] = dW2 + self.reg * self.params["W2"]
+        grads["b2"] = db2
+
+        dx1, dW1, db1 = affine_relu_backward(dx2, layer1_cache)
+        grads["W1"] = dW1 + self.reg * self.params["W1"]
+        grads["b1"] = db1
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
