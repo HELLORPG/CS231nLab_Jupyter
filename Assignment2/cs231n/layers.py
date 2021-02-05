@@ -117,6 +117,7 @@ def relu_forward(x):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     pass
+    out = np.maximum(0, x)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -139,11 +140,24 @@ def relu_backward(dout, cache):
     """
     dx, x = None, cache
     ###########################################################################
-    # TODO: Implement the ReLU backward pass.                                 #
+    # TODO: Implement the ReLU backward 
+
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     pass
+    
+    # 对于ReLU进行分类讨论（这种方法过于复杂，因此取消）
+
+    # 或许可以使用一个掩码类型的东西对最终的结果进行乘积判断
+    mask = np.maximum(0, x) # 前向传播经过ReLU的结果
+    # for m in mask:
+    #   if m > 0:
+    #     m = 1
+    # 该方法不能准确的精确到每一个元素，经过上网的查找，可以使用条件判定：
+    mask[mask > 0] = 1
+
+    dx = np.multiply(dout, mask) # 进行掩码处理
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
