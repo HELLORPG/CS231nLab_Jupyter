@@ -83,6 +83,14 @@ def affine_backward(dout, cache):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     pass
+    x_reshape = x.reshape(x.shape[0], -1) # 通过-1参数可以减少之前采用的计算方法
+
+
+    dx = np.dot(dout, w.T)
+    dw = np.dot(x_reshape.T, dout)
+    db = np.sum(dout, axis=0)
+
+    dx = dx.reshape(x.shape)  # 匹配输出的shape
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
