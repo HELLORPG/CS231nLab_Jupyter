@@ -504,6 +504,10 @@ def dropout_forward(x, dropout_param):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         pass
+        mask = np.random.rand(*x.shape) <= p / p
+        # 仅保留一部分，也就是dropout的含义，该代码比较简洁
+        # 该方法直接在dropout的时候就算入的比例偏差，后续不需要再进行调整
+        out = x * mask
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -516,6 +520,7 @@ def dropout_forward(x, dropout_param):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         pass
+        out = x
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -547,6 +552,7 @@ def dropout_backward(dout, cache):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         pass
+        dx = dout * mask
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
