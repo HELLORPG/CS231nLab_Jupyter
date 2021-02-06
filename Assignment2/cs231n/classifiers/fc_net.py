@@ -235,6 +235,16 @@ class FullyConnectedNet(object):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         pass
+        layer_dim = [input_dim] + hidden_dims + [num_classes] # layer_dim代表了一个完整的列表表明了每一层的神经元个数（其中input_dim仅仅是用作求解第一层的W矩阵，实际上在传统意义上并不算一层）
+        for i in range(len(hidden_dims) + 1):
+          # 实际上需要的W和b的个数比隐层的个数多一个
+          self.params['W%d' % (i+1)] = weight_scale * np.random.randn(layer_dim[i],layer_dim[i+1])
+          self.params['b%d' % (i+1)] = weight_scale * np.zeros(layer_dim[i+1])
+          if self.normalization == 'batchnorm' and i < len(hidden_dims):
+              self.params['gamma%d'%(i+1)] = np.ones(layer_dim[i+1])
+              self.params['beta%d'%(i+1)] = np.zeros(layer_dim[i+1])
+              # scale初始化为1，shift初始化为0。
+
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -297,6 +307,23 @@ class FullyConnectedNet(object):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         pass
+        
+        input_layer = X
+
+        arf_cache = {}
+        df_cache = {}
+        for i in range(self.num_layers-1):
+          w, b = self.params['W%d'%(i + 1)], self.params['b%d'%(i + 1)]
+          if self.normalization == 'batchnorm':
+            gamma = self.params['gamma%d'%(i+1)]
+            beta = self.params['beta%d'%(i+1)]
+            input_layer,arf_cache[i] = affine_bn_relu_forward(input_layer,w,b,gamma,beta,self.bn_params[i])
+          else:
+            input_layer,arf_cache[i] = affine_relu_forward(input_layer,w,b)                
+          if self.use_dropout:
+            input_layer, df_cache[i] = dropout_forward(input_layer,self.dropout_param)
+        W, b = self.params['W' + str(self.num_layers)], self.params['b' + str(self.num_layers)]
+        scores, arf_cache[self.num_layers] = affine_forward(input_layer, W, b)  
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -324,6 +351,28 @@ class FullyConnectedNet(object):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         pass
+        loss,dscore = softmax_loss(scores,y)
+        dhout = dscore
+        loss = loss +0.5*self.reg*np.sum(np.square(self.params['W%d'%(self.num_layers)]))
+        dx,dw,db = affine_backward(dhout,arf_cache[self.num_layers])
+        grads['W%d'%(self.num_layers)] = dw + self.reg*self.params['W%d'%(self.num_layers)]
+        grads['b%d'%(self.num_layers)] = db
+        dhout = dx
+        for i in range(self.num_layers -1):
+          lay = self.num_layers -1 -i -1
+          loss = loss +0.5*self.reg*np.sum(np.square(self.params['W%d'%(lay+1)]))
+          if self.use_dropout:
+            dhout = dropout_backward(dhout,df_cache[lay])
+          if self.normalization == 'batchnorm':
+            dx,dw,db,dgamma,dbeta = affine_bn_relu_backward(dhout,arf_cache[lay])
+          else:
+            dx,dw,db = affine_relu_backward(dhout,arf_cache[lay])
+          grads['W%d'%(lay+1)]  = dw + self.reg*self.params['W%d'%(lay+1)]
+          grads['b%d'%(lay+1)] = db
+          if self.normalization=='batchnorm':
+            grads['gamma%d'%(lay+1)] = dgamma
+            grads['beta%d'%(lay+1)] = dbeta
+          dhout = dx
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
