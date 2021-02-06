@@ -122,6 +122,7 @@ class Solver(object):
         self.y_val = data["y_val"]
 
         # Unpack keyword arguments
+        # 这里是可以传递的参数
         self.update_rule = kwargs.pop("update_rule", "sgd")
         self.optim_config = kwargs.pop("optim_config", {})
         self.lr_decay = kwargs.pop("lr_decay", 1.0)
@@ -257,6 +258,7 @@ class Solver(object):
         """
         num_train = self.X_train.shape[0]
         iterations_per_epoch = max(num_train // self.batch_size, 1)
+        # 每个epcoh循环多少次
         num_iterations = self.num_epochs * iterations_per_epoch
 
         for t in range(num_iterations):
