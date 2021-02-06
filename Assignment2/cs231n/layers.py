@@ -214,6 +214,7 @@ def batchnorm_forward(x, gamma, beta, bn_param):
 
     out, cache = None, None
     if mode == "train":
+        # 训练模式
         #######################################################################
         # TODO: Implement the training-time forward pass for batch norm.      #
         # Use minibatch statistics to compute the mean and variance, use      #
@@ -238,6 +239,13 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         pass
+        sample_mean = np.mean(x,axis=0)
+        sample_var = np.var(x,axis=0)
+        x_hat = (x - sample_mean) / (np.sqrt(sample_var + eps))
+        out  = gamma * x_hat + beta 
+        cache = (gamma, x, sample_mean, sample_var, eps, x_hat)
+        running_mean = momentum * running_mean + (1 - momentum) * sample_mean
+        running_var = momentum * running_var + (1 - momentum) * sample_var
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -253,6 +261,8 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         pass
+        scale = gamma / (np.sqrt(running_var + eps))
+        out  = x * scale + (beta - running_mean * scale)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -295,6 +305,16 @@ def batchnorm_backward(dout, cache):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     pass
+    gamma, x, sample_mean, sample_var, eps, x_hat = cache
+    m = x.shape[0]
+    dx_hat = dout * gamma #(N*D)
+    dgamma = np.sum(dout * x_hat,axis=0)#(D,)
+    dbeta = np.sum(dout,axis = 0)#(D,)
+    x_after_mean = x - sample_mean
+    num_x_hat = 1.0 / np.sqrt(sample_var+eps)
+    dvar = np.sum(dx_hat*x_after_mean,axis=0) * (-0.5) * num_x_hat**(3) #(D,)
+    dmean = - np.sum(dx_hat * num_x_hat,axis = 0) - dvar * 2.0* np.mean(x_after_mean,axis=0)
+    dx = dx_hat*num_x_hat + 1.0/m * dmean + 2.0/m*dvar*x_after_mean
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -330,6 +350,15 @@ def batchnorm_backward_alt(dout, cache):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     pass
+    gamma, x, sample_mean, sample_var, eps, x_hat = cache
+    m = dout.shape[0] # m is N here
+    dxhat = dout * gamma # (N, D)
+    dvar = (dxhat * (x-sample_mean) * (-0.5) * np.power(sample_var+eps, -1.5)).sum(axis = 0)  # (D,)
+    dmean = np.sum(dxhat * (-1) * np.power(sample_var + eps, -0.5), axis = 0)
+    dmean += dvar * np.sum(-2 * (x - sample_mean), axis = 0) / m
+    dx = dxhat * np.power(sample_var + eps, -0.5) + dvar*2*(x - sample_mean) / m + dmean / m
+    dgamma = np.sum(dout * x_hat, axis = 0)
+    dbeta = np.sum(dout, axis = 0)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -376,6 +405,11 @@ def layernorm_forward(x, gamma, beta, ln_param):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     pass
+    sample_mean = np.mean(x,axis = 1,keepdims = True)
+    sample_var = np.var(x,axis =1,keepdims =True)
+    x_hat = (x-sample_mean)/(np.sqrt(sample_var+eps))
+    out  = gamma*x_hat +beta 
+    cache = (gamma,x_hat.copy(),sample_mean,sample_var,eps,x.copy())
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -411,6 +445,16 @@ def layernorm_backward(dout, cache):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     pass
+    gamma,x_hat,sample_mean,sample_var,eps,x = cache
+    m = x.shape[1]
+    dx_hat = dout * gamma #(N*D)
+    dgamma = np.sum(dout * x_hat,axis=0)#(D,)
+    dbeta = np.sum(dout,axis = 0)#(D,)
+    x_after_mean = x - sample_mean
+    num_x_hat = 1.0 / np.sqrt(sample_var+eps)
+    dvar = np.sum(dx_hat*x_after_mean,axis=1,keepdims = True) * (-0.5) * num_x_hat**(3) #(D,)
+    dmean = - np.sum(dx_hat * num_x_hat,axis = 1,keepdims = True) - 2.0*dvar * np.mean(x_after_mean,axis=1,keepdims = True)
+    dx = dx_hat*num_x_hat + 1.0/m * dmean + 2.0/m*dvar*x_after_mean
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
