@@ -359,7 +359,7 @@ class FullyConnectedNet(object):
         grads['b%d'%(self.num_layers)] = db
         dhout = dx
         for i in range(self.num_layers -1):
-          lay = self.num_layers -1 -i -1
+          lay = self.num_layers - i - 2
           loss = loss +0.5*self.reg*np.sum(np.square(self.params['W%d'%(lay+1)]))
           if self.use_dropout:
             dhout = dropout_backward(dhout,df_cache[lay])
